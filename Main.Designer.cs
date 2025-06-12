@@ -36,45 +36,8 @@
             btnPlayPlinko = new Button();
             lblTitle = new Label();
             lblSubtitle = new Label();
-
+            btnShowAd = new Button();
             SuspendLayout();
-
-            // 
-            // Main Form
-            // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
-            BackColor = Color.FromArgb(32, 34, 37);
-            Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
-            ForeColor = Color.White;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
-            MaximizeBox = false;
-            StartPosition = FormStartPosition.CenterScreen;
-            Name = "Main";
-            Text = "Online Casino Hub";
-            Load += Main_Load;
-
-            // 
-            // lblTitle
-            // 
-            lblTitle.Text = "🎰 ONLINE CASINO";
-            lblTitle.Font = new Font("Segoe UI", 24F, FontStyle.Bold, GraphicsUnit.Point);
-            lblTitle.ForeColor = Color.Gold;
-            lblTitle.AutoSize = true;
-            lblTitle.Location = new Point((ClientSize.Width - 340) / 2, 40); // zentriert ca.
-            lblTitle.TextAlign = ContentAlignment.MiddleCenter;
-
-            // 
-            // lblSubtitle
-            // 
-            lblSubtitle.Text = "Willkommen bei deinem virtuellen Glücksspielerlebnis";
-            lblSubtitle.Font = new Font("Segoe UI", 12F, FontStyle.Italic, GraphicsUnit.Point);
-            lblSubtitle.ForeColor = Color.LightGray;
-            lblSubtitle.AutoSize = true;
-            lblSubtitle.Location = new Point((ClientSize.Width - 400) / 2, 90); // zentriert ca.
-            lblSubtitle.TextAlign = ContentAlignment.MiddleCenter;
-
             // 
             // btnPlayMines
             // 
@@ -90,7 +53,6 @@
             btnPlayMines.Text = "Play Mines";
             btnPlayMines.UseVisualStyleBackColor = false;
             btnPlayMines.Click += btnPlayMines_Click;
-
             // 
             // btnPlayDice
             // 
@@ -106,7 +68,6 @@
             btnPlayDice.Text = "Play Dice";
             btnPlayDice.UseVisualStyleBackColor = false;
             btnPlayDice.Click += btnPlayDice_Click;
-
             // 
             // btnPlayPlinko
             // 
@@ -122,16 +83,66 @@
             btnPlayPlinko.Text = "Play Plinko";
             btnPlayPlinko.UseVisualStyleBackColor = false;
             btnPlayPlinko.Click += btnPlayPlinko_Click;
-
             // 
-            // Add controls
+            // lblTitle
             // 
+            lblTitle.AutoSize = true;
+            lblTitle.Font = new Font("Segoe UI", 24F, FontStyle.Bold);
+            lblTitle.ForeColor = Color.Gold;
+            lblTitle.Location = new Point(227, 45);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(320, 45);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = "🎰 ONLINE CASINO";
+            lblTitle.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // lblSubtitle
+            // 
+            lblSubtitle.AutoSize = true;
+            lblSubtitle.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
+            lblSubtitle.ForeColor = Color.LightGray;
+            lblSubtitle.Location = new Point(203, 90);
+            lblSubtitle.Name = "lblSubtitle";
+            lblSubtitle.Size = new Size(383, 21);
+            lblSubtitle.TabIndex = 1;
+            lblSubtitle.Text = "Willkommen bei deinem virtuellen Glücksspielerlebnis";
+            lblSubtitle.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // btnShowAd
+            // 
+            btnShowAd.BackColor = Color.FromArgb(192, 0, 192);
+            btnShowAd.FlatAppearance.BorderSize = 0;
+            btnShowAd.FlatStyle = FlatStyle.Flat;
+            btnShowAd.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            btnShowAd.ForeColor = Color.White;
+            btnShowAd.Location = new Point(310, 296);
+            btnShowAd.Name = "btnShowAd";
+            btnShowAd.Size = new Size(180, 50);
+            btnShowAd.TabIndex = 3;
+            btnShowAd.Text = "Ad";
+            btnShowAd.UseVisualStyleBackColor = false;
+            btnShowAd.Click += btnShowAd_Click;
+            // 
+            // Main
+            // 
+            AutoScaleDimensions = new SizeF(7F, 17F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(32, 34, 37);
+            ClientSize = new Size(800, 450);
+            Controls.Add(btnShowAd);
             Controls.Add(lblTitle);
             Controls.Add(lblSubtitle);
             Controls.Add(btnPlayMines);
             Controls.Add(btnPlayDice);
             Controls.Add(btnPlayPlinko);
-
+            Font = new Font("Segoe UI", 10F);
+            ForeColor = Color.White;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            Name = "Main";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Online Casino Hub";
+            Load += Main_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -143,5 +154,6 @@
         private Button btnPlayMines;
         private Button btnPlayDice;
         private Button btnPlayPlinko;
+        private Button btnShowAd;
     }
 }

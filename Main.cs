@@ -25,20 +25,26 @@ namespace JahresprojektNeu
         }
         private void btnPlayMines_Click(object sender, EventArgs e)
         {
-            Mines minesForm = new Mines(); 
+            Mines minesForm = new Mines();
             minesForm.Show();
         }
 
         private void btnPlayDice_Click(object sender, EventArgs e)
         {
-            Dice diceForm = new Dice(); 
+            Dice diceForm = new Dice();
             diceForm.Show();
         }
 
         private void btnPlayPlinko_Click(object sender, EventArgs e)
         {
-            Plinko plinkoForm = new Plinko(); 
-            plinkoForm.Show(); 
+            Plinko plinkoForm = new Plinko();
+            plinkoForm.Show();
+        }
+
+        private void btnShowAd_Click(object sender, EventArgs e)
+        {
+            Ad adForm = new Ad();
+            adForm.ShowDialog();
         }
     }
 }
