@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using JahresprojektNeu.Classes;
 using Microsoft.Data.SqlClient;
 
 namespace JahresprojektNeu

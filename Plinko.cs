@@ -1,4 +1,6 @@
-﻿using System;
+﻿using JahresprojektNeu.Classes;
+using JahresprojektNeu.Panels;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,7 +14,7 @@ namespace JahresprojektNeu
 {
     public partial class Plinko : Form
     {
-        // Konstanten für das Spielbrett und die Pins
+        // Constants for the game board and the pins
         private const int PinRadius = 5;
         private const int BallRadius = 8;
         private const int PinSpacingX = 40;
@@ -21,23 +23,23 @@ namespace JahresprojektNeu
         private const int BucketHeight = 40;
         private const int StartY = 50;
 
-        // Spielvariablen
-        private int rows = 8; // Standard: 8 Reihen
-        private RiskLevel riskLevel = RiskLevel.Medium; // Standard: Mittleres Risiko
-        private decimal betAmount = 1.0m; // Standard-Einsatz
-        private decimal balance = 100.0m; // Anfangsguthaben
+        // Game variables
+        private int rows = 8; // Default: 8 rows
+        private RiskLevel riskLevel = RiskLevel.Medium; // Default: Medium risk
+        private decimal betAmount = 1.0m; // Default bet
+        private decimal balance => GameManager.Instance.Balance; // Initial balance
 
         // Animation
         private List<Ball> activeBalls = new List<Ball>();
         private System.Windows.Forms.Timer animationTimer = new System.Windows.Forms.Timer();
         private Random random = new Random();
 
-        // Spieleinstellungen
+        // Game settings
         private bool autoPlayEnabled = false;
         private int autoPlayCount = 0;
         private int autoPlayRemaining = 0;
 
-        // UI-Elemente
+        // UI elements
         private Label balanceLabel;
         private NumericUpDown betAmountInput;
         private ComboBox rowsComboBox;
@@ -48,10 +50,10 @@ namespace JahresprojektNeu
         private Label resultLabel;
         private Panel gamePanel;
 
-        // Payout-Tabellen für verschiedene Risikostufen und Reihen
+        // Payout tables for different risk levels and rows
         private Dictionary<RiskLevel, Dictionary<int, decimal[]>> payoutTables = new Dictionary<RiskLevel, Dictionary<int, decimal[]>>();
 
-        // Enumeration für Risikostufen
+        // Enumeration for risk levels
         public enum RiskLevel
         {
             Low,
@@ -59,7 +61,7 @@ namespace JahresprojektNeu
             High
         }
 
-        // Klasse für die Ball-Animation
+        // Class for the ball animation
         private class Ball
         {
             public float X { get; set; }
@@ -79,19 +81,17 @@ namespace JahresprojektNeu
 
         private void Plinko_Load(object sender, EventArgs e)
         {
-            // InitializePayoutTables wird separat aufgerufen
+            // InitializePayoutTables is called separately
         }
-
-       
 
         private void InitializePayoutTables()
         {
-            // Initialisiere Dictionaries für jedes Risikolevel
+            // Initialize dictionaries for each risk level
             payoutTables[RiskLevel.Low] = new Dictionary<int, decimal[]>();
             payoutTables[RiskLevel.Medium] = new Dictionary<int, decimal[]>();
             payoutTables[RiskLevel.High] = new Dictionary<int, decimal[]>();
 
-            // Niedrige Risikostufe
+            // Low risk level
             payoutTables[RiskLevel.Low][8] = new decimal[] { 5.6m, 2.1m, 1.0m, 0.7m, 0.5m, 0.7m, 1.0m, 2.1m, 5.6m };
             payoutTables[RiskLevel.Low][9] = new decimal[] { 5.6m, 2.0m, 1.4m, 1.0m, 0.7m, 0.7m, 1.0m, 1.4m, 2.0m, 5.6m };
             payoutTables[RiskLevel.Low][10] = new decimal[] { 8.9m, 3.0m, 1.4m, 1.0m, 0.7m, 0.5m, 0.7m, 1.0m, 1.4m, 3.0m, 8.9m };
@@ -102,7 +102,7 @@ namespace JahresprojektNeu
             payoutTables[RiskLevel.Low][15] = new decimal[] { 15m, 4.0m, 1.4m, 1.0m, 0.7m, 0.5m, 0.5m, 0.5m, 0.5m, 0.5m, 0.5m, 0.7m, 1.0m, 1.4m, 4.0m, 15m };
             payoutTables[RiskLevel.Low][16] = new decimal[] { 16m, 4.0m, 1.4m, 1.0m, 0.7m, 0.5m, 0.5m, 0.5m, 0.5m, 0.5m, 0.5m, 0.5m, 0.7m, 1.0m, 1.4m, 4.0m, 16m };
 
-            // Mittlere Risikostufe
+            // Medium risk level
             payoutTables[RiskLevel.Medium][8] = new decimal[] { 13m, 3.0m, 1.2m, 0.7m, 0.4m, 0.7m, 1.2m, 3.0m, 13m };
             payoutTables[RiskLevel.Medium][9] = new decimal[] { 18m, 4.0m, 1.5m, 0.8m, 0.5m, 0.5m, 0.8m, 1.5m, 4.0m, 18m };
             payoutTables[RiskLevel.Medium][10] = new decimal[] { 22m, 6.0m, 1.5m, 0.8m, 0.5m, 0.4m, 0.5m, 0.8m, 1.5m, 6.0m, 22m };
@@ -113,7 +113,7 @@ namespace JahresprojektNeu
             payoutTables[RiskLevel.Medium][15] = new decimal[] { 88m, 18m, 7.0m, 3.0m, 1.5m, 0.8m, 0.5m, 0.3m, 0.3m, 0.5m, 0.8m, 1.5m, 3.0m, 7.0m, 18m, 88m };
             payoutTables[RiskLevel.Medium][16] = new decimal[] { 110m, 41m, 10m, 4.0m, 2.0m, 1.0m, 0.5m, 0.3m, 0.3m, 0.3m, 0.5m, 1.0m, 2.0m, 4.0m, 10m, 41m, 110m };
 
-            // Hohe Risikostufe
+            // High risk level
             payoutTables[RiskLevel.High][8] = new decimal[] { 29m, 5.0m, 1.0m, 0.4m, 0.2m, 0.4m, 1.0m, 5.0m, 29m };
             payoutTables[RiskLevel.High][9] = new decimal[] { 43m, 8.0m, 2.0m, 0.4m, 0.2m, 0.2m, 0.4m, 2.0m, 8.0m, 43m };
             payoutTables[RiskLevel.High][10] = new decimal[] { 76m, 10m, 3.0m, 0.8m, 0.3m, 0.2m, 0.3m, 0.8m, 3.0m, 10m, 76m };
@@ -129,23 +129,23 @@ namespace JahresprojektNeu
         {
             Graphics g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            // Berechnung der Spielfeldgröße
+            // Calculate the game board size
             int pinsInLastRow = rows + 1;
             int boardWidth = pinsInLastRow * PinSpacingX;
             int boardHeight = rows * PinSpacingY + BucketHeight;
             int boardX = (gamePanel.Width - boardWidth) / 2;
             int topY = StartY;
 
-            // Berechnung der Spielfeldmitte (für Ballabwurf)
+            // Calculate the center of the game board (for ball drop)
             int centerX = boardX + boardWidth / 2;
 
-            // Hintergrund zeichnen
+            // Draw background
             using (Brush bgBrush = new SolidBrush(Color.FromArgb(20, 20, 30)))
             {
                 g.FillRectangle(bgBrush, boardX - 20, topY - 20, boardWidth + 40, boardHeight + 40);
             }
 
-            // Pins zeichnen
+            // Draw pins
             using (Brush pinBrush = new SolidBrush(Color.LightGray))
             {
                 for (int row = 0; row < rows; row++)
@@ -162,7 +162,7 @@ namespace JahresprojektNeu
                 }
             }
 
-            // Buckets zeichnen
+            // Draw buckets
             decimal[] payouts = payoutTables[riskLevel][rows];
             for (int i = 0; i < pinsInLastRow; i++)
             {
@@ -172,15 +172,15 @@ namespace JahresprojektNeu
                 Color bucketColor;
                 if (payouts[i] < 1.0m)
                 {
-                    bucketColor = Color.FromArgb(220, 50, 50); // Rot für Verlust
+                    bucketColor = Color.FromArgb(220, 50, 50); // Red for loss
                 }
                 else if (payouts[i] < 2.0m)
                 {
-                    bucketColor = Color.FromArgb(220, 190, 50); // Gelb für kleinen Gewinn
+                    bucketColor = Color.FromArgb(220, 190, 50); // Yellow for small win
                 }
                 else
                 {
-                    bucketColor = Color.FromArgb(50, 220, 50); // Grün für großen Gewinn
+                    bucketColor = Color.FromArgb(50, 220, 50); // Green for big win
                 }
 
                 using (Brush bucketBrush = new SolidBrush(bucketColor))
@@ -188,7 +188,7 @@ namespace JahresprojektNeu
                     g.FillRectangle(bucketBrush, bucketX - BucketWidth / 2, bucketY, BucketWidth, BucketHeight);
                 }
 
-                // Auszahlungswert anzeigen
+                // Display payout value
                 using (Font font = new Font("Arial", 8))
                 using (Brush textBrush = new SolidBrush(Color.White))
                 using (StringFormat format = new StringFormat() { Alignment = StringAlignment.Center })
@@ -198,7 +198,7 @@ namespace JahresprojektNeu
                 }
             }
 
-            // Aktive Bälle zeichnen
+            // Draw active balls
             using (Brush ballBrush = new SolidBrush(Color.Gold))
             {
                 foreach (var ball in activeBalls)
@@ -215,16 +215,16 @@ namespace JahresprojektNeu
 
         private void DropBallButton_Click(object sender, EventArgs e)
         {
-            if (betAmount > balance)
+            if (betAmount > GameManager.Instance.Balance)
             {
-                MessageBox.Show("Nicht genug Guthaben für diesen Einsatz!", "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Not enough balance for this bet!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            balance -= betAmount;
-            UpdateBalanceDisplay();
+            GameManager.Instance.UpdateBalance(-betAmount); // Deduct bet from GameManager balance
+            UpdateBalanceDisplay(); // Update UI
 
-            // Berechnung der Spielfeldgröße und -mitte
+            // Calculate the game board size and center
             int pinsInLastRow = rows + 1;
             int boardWidth = pinsInLastRow * PinSpacingX;
             int boardX = (gamePanel.Width - boardWidth) / 2;
@@ -232,13 +232,14 @@ namespace JahresprojektNeu
 
             if (instantPlayCheckBox.Checked)
             {
-                // Sofortiges Spiel ohne Animation
+                // Instant play without animation
                 decimal payout = SimulatePlinkoResult();
-                UpdateBalanceWithPayout(payout);
+                GameManager.Instance.UpdateBalance(payout); // Update GameManager balance
+                UpdateBalanceDisplay(); // Update UI
             }
             else
             {
-                // Animiertes Spiel
+                // Animated play
                 DropBallWithAnimation(centerX);
             }
         }
@@ -247,20 +248,20 @@ namespace JahresprojektNeu
         {
             if (autoPlayEnabled)
             {
-                // Auto-Play stoppen
+                // Stop auto-play
                 autoPlayEnabled = false;
                 autoPlayRemaining = 0;
                 autoPlayButton.Text = "Auto-Play (10x)";
             }
             else
             {
-                // Auto-Play starten
+                // Start auto-play
                 autoPlayCount = 10;
                 autoPlayRemaining = autoPlayCount;
                 autoPlayEnabled = true;
-                autoPlayButton.Text = "Stopp Auto-Play";
+                autoPlayButton.Text = "Stop Auto-Play";
 
-                // Ersten Ball fallen lassen
+                // Drop the first ball
                 if (activeBalls.Count == 0 && autoPlayRemaining > 0)
                 {
                     DropBallButton_Click(null, null);
@@ -284,59 +285,59 @@ namespace JahresprojektNeu
         {
             bool needsRedraw = false;
 
-            // Alle aktiven Bälle aktualisieren
+            // Update all active balls
             for (int i = activeBalls.Count - 1; i >= 0; i--)
             {
                 Ball ball = activeBalls[i];
 
-                // Physik aktualisieren
-                ball.VelocityY += 0.2f; // Schwerkraft
+                // Update physics
+                ball.VelocityY += 0.2f; // Gravity
                 ball.Y += ball.VelocityY;
                 ball.X += ball.VelocityX;
 
-                // Kollisionen mit Pins überprüfen
+                // Check for collisions with pins
                 CheckPinCollisions(ball);
 
-                // Überprüfen, ob der Ball einen Bucket erreicht hat
+                // Check if the ball has reached a bucket
                 if (ball.Y >= StartY + rows * PinSpacingY + BallRadius)
                 {
                     if (ball.TargetBucket == -1)
                     {
-                        // Feststellen, in welchen Bucket der Ball gefallen ist
+                        // Determine which bucket the ball has fallen into
                         ball.TargetBucket = GetBucketForBall(ball);
 
-                        // Auszahlung berechnen
+                        // Calculate payout
                         decimal[] payouts = payoutTables[riskLevel][rows];
                         ball.Payout = payouts[ball.TargetBucket] * betAmount;
 
-                        // Anzeige des Gewinns
+                        // Display winnings
                         if (ball.Payout > betAmount)
                         {
-                            resultLabel.Text = $"Gewinn: {ball.Payout:F2}!";
+                            resultLabel.Text = $"Win: {ball.Payout:F2}!";
                             resultLabel.ForeColor = Color.LightGreen;
                         }
                         else if (ball.Payout == betAmount)
                         {
-                            resultLabel.Text = "Gleichstand!";
+                            resultLabel.Text = "Tie!";
                             resultLabel.ForeColor = Color.Yellow;
                         }
                         else
                         {
-                            resultLabel.Text = $"Verlust: {ball.Payout - betAmount:F2}";
+                            resultLabel.Text = $"Loss: {ball.Payout - betAmount:F2}";
                             resultLabel.ForeColor = Color.Red;
                         }
 
-                        // Guthaben aktualisieren
+                        // Update balance
                         UpdateBalanceWithPayout(ball.Payout);
                     }
 
-                    // Ball anhalten, wenn er genug in den Bucket gefallen ist
+                    // Stop the ball if it has fallen enough into the bucket
                     if (ball.Y >= StartY + rows * PinSpacingY + BucketHeight / 2)
                     {
                         ball.Active = false;
                         activeBalls.RemoveAt(i);
 
-                        // Auto-Play fortsetzen, wenn aktiviert
+                        // Continue auto-play if enabled
                         if (autoPlayEnabled && autoPlayRemaining > 0)
                         {
                             autoPlayRemaining--;
@@ -346,7 +347,7 @@ namespace JahresprojektNeu
                                 autoPlayEnabled = false;
                                 autoPlayButton.Text = "Auto-Play (10x)";
                             }
-                            else if (activeBalls.Count == 0) // Warten, bis alle Bälle abgewickelt sind
+                            else if (activeBalls.Count == 0) // Wait until all balls are processed
                             {
                                 DropBallButton_Click(null, null);
                             }
@@ -365,13 +366,13 @@ namespace JahresprojektNeu
 
         private void CheckPinCollisions(Ball ball)
         {
-            // Berechnung der Spielfeldgröße
+            // Calculate the game board size
             int pinsInLastRow = rows + 1;
             int boardWidth = pinsInLastRow * PinSpacingX;
             int boardX = (gamePanel.Width - boardWidth) / 2;
             int centerX = boardX + boardWidth / 2;
 
-            // Kollisionen mit Pins überprüfen
+            // Check for collisions with pins
             for (int row = 0; row < rows; row++)
             {
                 int pinsInThisRow = row + 1;
@@ -382,43 +383,43 @@ namespace JahresprojektNeu
                     int pinX = rowStartX + pin * PinSpacingX;
                     int pinY = StartY + row * PinSpacingY;
 
-                    // Abstand zum Pin berechnen
+                    // Calculate distance to the pin
                     float dx = ball.X - pinX;
                     float dy = ball.Y - pinY;
                     float distance = (float)Math.Sqrt(dx * dx + dy * dy);
 
-                    // Kollisionserkennung
+                    // Collision detection
                     if (distance < PinRadius + BallRadius)
                     {
-                        // Kollisionsreaktion
+                        // Collision response
                         float overlap = (PinRadius + BallRadius) - distance;
 
-                        // Normalisierte Kollisionsrichtung
+                        // Normalized collision direction
                         float nx = dx / distance;
                         float ny = dy / distance;
 
-                        // Ball zurückschieben, um Überlappung zu vermeiden
+                        // Push the ball back to avoid overlap
                         ball.X += nx * overlap * 0.5f;
                         ball.Y += ny * overlap * 0.5f;
 
-                        // Geschwindigkeit reflektieren
+                        // Reflect velocity
                         float dotProduct = ball.VelocityX * nx + ball.VelocityY * ny;
 
-                        // Abprallgeschwindigkeit
+                        // Bounce velocity
                         ball.VelocityX = ball.VelocityX - 2 * dotProduct * nx;
                         ball.VelocityY = ball.VelocityY - 2 * dotProduct * ny;
 
-                        // Abprallen dämpfen
+                        // Dampen the bounce
                         ball.VelocityX *= 0.8f;
                         ball.VelocityY *= 0.8f;
 
-                        // Etwas Zufall hinzufügen (um mehr Varianz zu erzeugen)
+                        // Add some randomness (to create more variance)
                         ball.VelocityX += (float)(random.NextDouble() - 0.5) * 0.4f;
                     }
                 }
             }
 
-            // Kollisionen mit den Rändern des Spielfelds
+            // Check for collisions with the edges of the game board
             int leftBoundary = boardX;
             int rightBoundary = boardX + boardWidth;
 
@@ -436,15 +437,15 @@ namespace JahresprojektNeu
 
         private int GetBucketForBall(Ball ball)
         {
-            // Berechnung der Spielfeldgröße
+            // Calculate the game board size
             int pinsInLastRow = rows + 1;
             int boardWidth = pinsInLastRow * PinSpacingX;
             int boardX = (gamePanel.Width - boardWidth) / 2;
 
-            // Bestimme, in welchem Bucket der Ball landet
+            // Determine which bucket the ball lands in
             int bucketIndex = (int)Math.Floor((ball.X - boardX + BucketWidth / 2) / PinSpacingX);
 
-            // Sicherstellen, dass der Index im gültigen Bereich liegt
+            // Ensure the index is within a valid range
             bucketIndex = Math.Max(0, Math.Min(pinsInLastRow - 1, bucketIndex));
 
             return bucketIndex;
@@ -452,37 +453,37 @@ namespace JahresprojektNeu
 
         private decimal SimulatePlinkoResult()
         {
-            // Diese Methode simuliert den Ausgang eines Plinko-Spiels ohne Animation
-            // Basierend auf den Wahrscheinlichkeiten
+            // This method simulates the outcome of a Plinko game without animation
+            // Based on probabilities
 
-            // Simulation einer Binomialverteilung
+            // Simulate a binomial distribution
             int steps = rows;
             int position = 0;
 
             for (int i = 0; i < steps; i++)
             {
                 if (random.NextDouble() < 0.5)
-                    position++; // Nach rechts
+                    position++; // Move right
             }
 
-            // Ergebnis anzeigen
+            // Display result
             decimal[] payouts = payoutTables[riskLevel][rows];
             decimal payout = payouts[position] * betAmount;
 
-            // Anzeige des Gewinns
+            // Display winnings
             if (payout > betAmount)
             {
-                resultLabel.Text = $"Gewinn: {payout:F2}!";
+                resultLabel.Text = $"Win: {payout:F2}!";
                 resultLabel.ForeColor = Color.LightGreen;
             }
             else if (payout == betAmount)
             {
-                resultLabel.Text = "Gleichstand!";
+                resultLabel.Text = "Tie!";
                 resultLabel.ForeColor = Color.Yellow;
             }
             else
             {
-                resultLabel.Text = $"Verlust: {payout - betAmount:F2}";
+                resultLabel.Text = $"Loss: {payout - betAmount:F2}";
                 resultLabel.ForeColor = Color.Red;
             }
 
@@ -491,15 +492,14 @@ namespace JahresprojektNeu
 
         private void UpdateBalanceWithPayout(decimal payout)
         {
-            balance += payout;
+            GameManager.Instance.UpdateBalance(payout);
             UpdateBalanceDisplay();
         }
 
         private void UpdateBalanceDisplay()
         {
-            balanceLabel.Text = $"Guthaben: {balance:F2}";
-
-            if (balance < betAmount)
+            balanceLabel.Text = $"Balance: {GameManager.Instance.Balance:F2}";
+            if (GameManager.Instance.Balance < betAmount)
             {
                 dropBallButton.Enabled = false;
                 autoPlayButton.Enabled = false;
@@ -513,24 +513,24 @@ namespace JahresprojektNeu
 
         private void SetupPlinkoGame()
         {
-            // Form-Einstellungen
+            // Form settings
             this.Text = "Plinko";
             this.Size = new Size(800, 700);
             this.BackColor = Color.FromArgb(25, 25, 35);
             this.ForeColor = Color.White;
             this.Font = new Font("Segoe UI", 10F);
 
-            // Initialisierung der Payout-Tabellen
+            // Initialize payout tables
             InitializePayoutTables();
 
-            // Spiel-Panel
+            // Game panel
             gamePanel = new DoubleBufferedPanel();
             gamePanel.Dock = DockStyle.Fill;
             gamePanel.Paint += GamePanel_Paint;
             gamePanel.MouseClick += GamePanel_MouseClick;
             this.Controls.Add(gamePanel);
 
-            // Steuerungsbereich
+            // Control area
             Panel controlPanel = new Panel();
             controlPanel.Dock = DockStyle.Top;
             controlPanel.Height = 100;
@@ -538,17 +538,17 @@ namespace JahresprojektNeu
             controlPanel.Padding = new Padding(10);
             this.Controls.Add(controlPanel);
 
-            // Guthaben-Anzeige
+            // Balance display
             balanceLabel = new Label();
-            balanceLabel.Text = $"Guthaben: {balance:F2}";
+            balanceLabel.Text = $"Balance: {balance:F2}";
             balanceLabel.AutoSize = true;
             balanceLabel.Location = new Point(10, 15);
             balanceLabel.ForeColor = Color.LightGreen;
             controlPanel.Controls.Add(balanceLabel);
 
-            // Einsatz-Einstellung
+            // Bet setting
             Label betLabel = new Label();
-            betLabel.Text = "Einsatz:";
+            betLabel.Text = "Bet:";
             betLabel.AutoSize = true;
             betLabel.Location = new Point(10, 45);
             controlPanel.Controls.Add(betLabel);
@@ -564,9 +564,9 @@ namespace JahresprojektNeu
             betAmountInput.ValueChanged += (s, e) => betAmount = betAmountInput.Value;
             controlPanel.Controls.Add(betAmountInput);
 
-            // Reihen-Auswahl
+            // Rows selection
             Label rowsLabel = new Label();
-            rowsLabel.Text = "Reihen:";
+            rowsLabel.Text = "Rows:";
             rowsLabel.AutoSize = true;
             rowsLabel.Location = new Point(200, 15);
             controlPanel.Controls.Add(rowsLabel);
@@ -576,7 +576,7 @@ namespace JahresprojektNeu
             {
                 rowsComboBox.Items.Add(i);
             }
-            rowsComboBox.SelectedIndex = 0; // Standard: 8 Reihen
+            rowsComboBox.SelectedIndex = 0; // Default: 8 rows
             rowsComboBox.Location = new Point(270, 12);
             rowsComboBox.Width = 80;
             rowsComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -587,18 +587,18 @@ namespace JahresprojektNeu
             };
             controlPanel.Controls.Add(rowsComboBox);
 
-            // Risiko-Auswahl
+            // Risk selection
             Label riskLabel = new Label();
-            riskLabel.Text = "Risiko:";
+            riskLabel.Text = "Risk:";
             riskLabel.AutoSize = true;
             riskLabel.Location = new Point(200, 45);
             controlPanel.Controls.Add(riskLabel);
 
             riskComboBox = new ComboBox();
-            riskComboBox.Items.Add("Niedrig");
-            riskComboBox.Items.Add("Mittel");
-            riskComboBox.Items.Add("Hoch");
-            riskComboBox.SelectedIndex = 1; // Standard: Mittleres Risiko
+            riskComboBox.Items.Add("Low");
+            riskComboBox.Items.Add("Medium");
+            riskComboBox.Items.Add("High");
+            riskComboBox.SelectedIndex = 1; // Default: Medium risk
             riskComboBox.Location = new Point(270, 42);
             riskComboBox.Width = 80;
             riskComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -614,9 +614,9 @@ namespace JahresprojektNeu
             };
             controlPanel.Controls.Add(riskComboBox);
 
-            // "Ball fallen lassen"-Button
+            // "Drop Ball" button
             dropBallButton = new Button();
-            dropBallButton.Text = "Ball fallen lassen";
+            dropBallButton.Text = "Drop Ball";
             dropBallButton.Size = new Size(150, 30);
             dropBallButton.Location = new Point(400, 15);
             dropBallButton.BackColor = Color.FromArgb(70, 130, 180);
@@ -625,7 +625,7 @@ namespace JahresprojektNeu
             dropBallButton.Click += DropBallButton_Click;
             controlPanel.Controls.Add(dropBallButton);
 
-            // Auto-Play-Button
+            // Auto-play button
             autoPlayButton = new Button();
             autoPlayButton.Text = "Auto-Play (10x)";
             autoPlayButton.Size = new Size(150, 30);
@@ -636,15 +636,15 @@ namespace JahresprojektNeu
             autoPlayButton.Click += AutoPlayButton_Click;
             controlPanel.Controls.Add(autoPlayButton);
 
-            // Sofort-Spiel-Checkbox
+            // Instant play checkbox
             instantPlayCheckBox = new CheckBox();
-            instantPlayCheckBox.Text = "Sofortiges Spiel";
+            instantPlayCheckBox.Text = "Instant Play";
             instantPlayCheckBox.AutoSize = true;
             instantPlayCheckBox.Location = new Point(600, 20);
             instantPlayCheckBox.ForeColor = Color.White;
             controlPanel.Controls.Add(instantPlayCheckBox);
 
-            // Ergebnis-Label
+            // Result label
             resultLabel = new Label();
             resultLabel.Text = "";
             resultLabel.AutoSize = true;
@@ -652,8 +652,8 @@ namespace JahresprojektNeu
             resultLabel.ForeColor = Color.White;
             controlPanel.Controls.Add(resultLabel);
 
-            // Timer für Animationen einrichten
-            animationTimer.Interval = 16; // Etwa 60 FPS
+            // Set up animation timer
+            animationTimer.Interval = 16; // About 60 FPS
             animationTimer.Tick += AnimationTimer_Tick;
             animationTimer.Start();
 

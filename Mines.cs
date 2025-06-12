@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JahresprojektNeu.Classes;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -9,7 +10,7 @@ namespace Jahresprojekt
         private const int BoardSize = 5; // Size of the board (5x5)
         private int mineCount; // Number of mines on the board
         private decimal wagerAmount; // Amount the player bets
-        private decimal balance = 1000m; // Starting balance
+        private decimal balance => GameManager.Instance.Balance; // Starting balance
         private decimal currentWin = 0m; // Current potential winnings
         private int safeClicksCount = 0; // Number of safe tiles clicked
         private int maxSafeFields = 0; // Max number of safe tiles
@@ -107,7 +108,7 @@ namespace Jahresprojekt
                     return;
                 }
 
-                balance -= wagerAmount; // Deduct bet
+                GameManager.Instance.UpdateBalance(-wagerAmount); // Update game manager balance
                 UpdateBalanceLabel();
 
                 InitGameBoard(); // Enable tiles
@@ -265,7 +266,7 @@ namespace Jahresprojekt
 
             if (won)
             {
-                balance += currentWin;
+                GameManager.Instance.UpdateBalance(currentWin); // Update game manager balance
                 UpdateBalanceLabel();
                 MessageBox.Show($"{message}\nWinnings: {currentWin:F2} €", "Win", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 lblStatus.Text = $"Game ended. Win: {currentWin:F2} €";

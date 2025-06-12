@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Security.Cryptography;
 
-namespace StudioManager
+namespace JahresprojektNeu.Classes
 {
     class BCrypt
     {
@@ -338,7 +338,7 @@ namespace StudioManager
             for (int offset = 0, c1, c2; offset < length;)
             {
                 c1 = d[offset++] & 0xff;
-                rs.Append(base64_code[(c1 >> 2) & 0x3f]);
+                rs.Append(base64_code[c1 >> 2 & 0x3f]);
                 c1 = (c1 & 0x03) << 4;
                 if (offset >= length)
                 {
@@ -346,7 +346,7 @@ namespace StudioManager
                     break;
                 }
                 c2 = d[offset++] & 0xff;
-                c1 |= (c2 >> 4) & 0x0f;
+                c1 |= c2 >> 4 & 0x0f;
                 rs.Append(base64_code[c1 & 0x3f]);
                 c1 = (c2 & 0x0f) << 2;
                 if (offset >= length)
@@ -355,7 +355,7 @@ namespace StudioManager
                     break;
                 }
                 c2 = d[offset++] & 0xff;
-                c1 |= (c2 >> 6) & 0x03;
+                c1 |= c2 >> 6 & 0x03;
                 rs.Append(base64_code[c1 & 0x3f]);
                 rs.Append(base64_code[c2 & 0x3f]);
             }
@@ -370,8 +370,8 @@ namespace StudioManager
         /// <returns>The decoded value of <c>x</c></returns>
         private static int Char64(char c)
         {
-            int i = (int)c;
-            return (i < 0 || i > index_64.Length) ? -1 : index_64[i];
+            int i = c;
+            return i < 0 || i > index_64.Length ? -1 : index_64[i];
         }
 
         /// <summary>Decode a string encoded using BCrypt's Base64 scheme to a
@@ -399,7 +399,7 @@ namespace StudioManager
                     break;
                 }
 
-                bytes.Add((byte)((c1 << 2) | ((c2 & 0x30) >> 4)));
+                bytes.Add((byte)(c1 << 2 | (c2 & 0x30) >> 4));
                 if (++length >= maximumLength || offset >= s.Length)
                 {
                     break;
@@ -411,14 +411,14 @@ namespace StudioManager
                     break;
                 }
 
-                bytes.Add((byte)(((c2 & 0x0f) << 4) | ((c3 & 0x3c) >> 2)));
+                bytes.Add((byte)((c2 & 0x0f) << 4 | (c3 & 0x3c) >> 2));
                 if (++length >= maximumLength || offset >= s.Length)
                 {
                     break;
                 }
 
                 int c4 = Char64(s[offset++]);
-                bytes.Add((byte)(((c3 & 0x03) << 6) | c4));
+                bytes.Add((byte)((c3 & 0x03) << 6 | c4));
 
                 ++length;
             }
@@ -439,24 +439,24 @@ namespace StudioManager
 
             uint i, n, l = block[offset], r = block[offset + 1];
 
-            l ^= this.p[0];
+            l ^= p[0];
             for (i = 0; i <= BLOWFISH_NUM_ROUNDS - 2;)
             {
                 // Feistel substitution on left word
-                n = this.s[(l >> 24) & 0xff];
-                n += this.s[0x100 | ((l >> 16) & 0xff)];
-                n ^= this.s[0x200 | ((l >> 8) & 0xff)];
-                n += this.s[0x300 | (l & 0xff)];
-                r ^= n ^ this.p[++i];
+                n = s[l >> 24 & 0xff];
+                n += s[0x100 | l >> 16 & 0xff];
+                n ^= s[0x200 | l >> 8 & 0xff];
+                n += s[0x300 | l & 0xff];
+                r ^= n ^ p[++i];
 
                 // Feistel substitution on right word
-                n = this.s[(r >> 24) & 0xff];
-                n += this.s[0x100 | ((r >> 16) & 0xff)];
-                n ^= this.s[0x200 | ((r >> 8) & 0xff)];
-                n += this.s[0x300 | (r & 0xff)];
-                l ^= n ^ this.p[++i];
+                n = s[r >> 24 & 0xff];
+                n += s[0x100 | r >> 16 & 0xff];
+                n ^= s[0x200 | r >> 8 & 0xff];
+                n += s[0x300 | r & 0xff];
+                l ^= n ^ p[++i];
             }
-            block[offset] = r ^ this.p[BLOWFISH_NUM_ROUNDS + 1];
+            block[offset] = r ^ p[BLOWFISH_NUM_ROUNDS + 1];
             block[offset + 1] = l;
         }
 
@@ -474,7 +474,7 @@ namespace StudioManager
 
             for (int i = 0; i < 4; i++)
             {
-                word = (word << 8) | data[offset];
+                word = word << 8 | data[offset];
                 offset = (offset + 1) % data.Length;
             }
 
@@ -486,10 +486,10 @@ namespace StudioManager
         /// </summary>
         private void InitKey()
         {
-            this.p = new uint[p_orig.Length];
-            p_orig.CopyTo(this.p, 0);
-            this.s = new uint[s_orig.Length];
-            s_orig.CopyTo(this.s, 0);
+            p = new uint[p_orig.Length];
+            p_orig.CopyTo(p, 0);
+            s = new uint[s_orig.Length];
+            s_orig.CopyTo(s, 0);
         }
 
         /// <summary>
@@ -500,26 +500,26 @@ namespace StudioManager
         {
 
             uint[] lr = { 0, 0 };
-            int plen = this.p.Length, slen = this.s.Length;
+            int plen = p.Length, slen = s.Length;
 
             int offset = 0;
             for (int i = 0; i < plen; i++)
             {
-                this.p[i] = this.p[i] ^ StreamToWord(key, ref offset);
+                p[i] = p[i] ^ StreamToWord(key, ref offset);
             }
 
             for (int i = 0; i < plen; i += 2)
             {
                 Encipher(lr, 0);
-                this.p[i] = lr[0];
-                this.p[i + 1] = lr[1];
+                p[i] = lr[0];
+                p[i + 1] = lr[1];
             }
 
             for (int i = 0; i < slen; i += 2)
             {
                 Encipher(lr, 0);
-                this.s[i] = lr[0];
-                this.s[i + 1] = lr[1];
+                s[i] = lr[0];
+                s[i + 1] = lr[1];
             }
         }
 
@@ -534,12 +534,12 @@ namespace StudioManager
         {
 
             uint[] lr = { 0, 0 };
-            int plen = this.p.Length, slen = this.s.Length;
+            int plen = p.Length, slen = s.Length;
 
             int keyOffset = 0;
             for (int i = 0; i < plen; i++)
             {
-                this.p[i] = this.p[i] ^ StreamToWord(key, ref keyOffset);
+                p[i] = p[i] ^ StreamToWord(key, ref keyOffset);
             }
 
             int dataOffset = 0;
@@ -548,8 +548,8 @@ namespace StudioManager
                 lr[0] ^= StreamToWord(data, ref dataOffset);
                 lr[1] ^= StreamToWord(data, ref dataOffset);
                 Encipher(lr, 0);
-                this.p[i] = lr[0];
-                this.p[i + 1] = lr[1];
+                p[i] = lr[0];
+                p[i + 1] = lr[1];
             }
 
             for (int i = 0; i < slen; i += 2)
@@ -557,8 +557,8 @@ namespace StudioManager
                 lr[0] ^= StreamToWord(data, ref dataOffset);
                 lr[1] ^= StreamToWord(data, ref dataOffset);
                 Encipher(lr, 0);
-                this.s[i] = lr[0];
-                this.s[i + 1] = lr[1];
+                s[i] = lr[0];
+                s[i + 1] = lr[1];
             }
         }
 
@@ -603,7 +603,7 @@ namespace StudioManager
 
             for (int i = 0; i < 64; i++)
             {
-                for (int j = 0; j < (clen >> 1); j++)
+                for (int j = 0; j < clen >> 1; j++)
                 {
                     Encipher(cdata, j << 1);
                 }
@@ -612,9 +612,9 @@ namespace StudioManager
             ret = new byte[clen * 4];
             for (int i = 0, j = 0; i < clen; i++)
             {
-                ret[j++] = (byte)((cdata[i] >> 24) & 0xff);
-                ret[j++] = (byte)((cdata[i] >> 16) & 0xff);
-                ret[j++] = (byte)((cdata[i] >> 8) & 0xff);
+                ret[j++] = (byte)(cdata[i] >> 24 & 0xff);
+                ret[j++] = (byte)(cdata[i] >> 16 & 0xff);
+                ret[j++] = (byte)(cdata[i] >> 8 & 0xff);
                 ret[j++] = (byte)(cdata[i] & 0xff);
             }
 
@@ -667,9 +667,9 @@ namespace StudioManager
                 throw new ArgumentException("Missing salt rounds");
             }
 
-            int rounds = Int32.Parse(salt.Substring(offset, 2), NumberFormatInfo.InvariantInfo);
+            int rounds = int.Parse(salt.Substring(offset, 2), NumberFormatInfo.InvariantInfo);
 
-            byte[] passwordBytes = Encoding.UTF8.GetBytes(password + (minor >= 'a' ? "\0" : String.Empty));
+            byte[] passwordBytes = Encoding.UTF8.GetBytes(password + (minor >= 'a' ? "\0" : string.Empty));
             byte[] saltBytes = DecodeBase64(salt.Substring(offset + 3, 22),
                                             BCRYPT_SALT_LEN);
 
@@ -693,7 +693,7 @@ namespace StudioManager
             rs.Append('$');
             rs.Append(EncodeBase64(saltBytes, saltBytes.Length));
             rs.Append(EncodeBase64(hashed,
-                                   (bf_crypt_ciphertext.Length * 4) - 1));
+                                   bf_crypt_ciphertext.Length * 4 - 1));
 
             return rs.ToString();
         }
@@ -712,7 +712,7 @@ namespace StudioManager
 
             RandomNumberGenerator.Create().GetBytes(randomBytes);
 
-            StringBuilder rs = new StringBuilder((randomBytes.Length * 2) + 8);
+            StringBuilder rs = new StringBuilder(randomBytes.Length * 2 + 8);
 
             rs.Append("$2a$");
             if (logRounds < 10)

@@ -1,16 +1,10 @@
 ﻿using Microsoft.Data.SqlClient;
-using StudioManager;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
 
-namespace JahresprojektNeu
+namespace JahresprojektNeu.Classes
 {
     internal class SQLManagement : BCrypt
     {
@@ -27,7 +21,9 @@ namespace JahresprojektNeu
                 "Create Table Users(" +
                 "UserID int identity(1,1) primary key," +
                 "Username varchar(255) not null," +
-                "HashPass varchar(max) not null);"
+                "HashPass varchar(max) not null," +
+                "Balance decimal(18, 2) not null default(100)" +
+                ");"
             }
         };
         private static SqlDataAdapter SQLDA = new SqlDataAdapter("", con);
@@ -106,9 +102,8 @@ namespace JahresprojektNeu
                     else
                     {
                         SQLReader.Close();
-                        string CreateTableBooksQuery = tableCommands[tableName];
-                        cmd.CommandText = CreateTableBooksQuery;
-                        MessageBox.Show(cmd.CommandText.ToString());
+                        string CreateTableQuery = tableCommands[tableName];
+                        cmd.CommandText = CreateTableQuery;
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -121,7 +116,7 @@ namespace JahresprojektNeu
         }
 
         /// <summary>
-        /// Created a default admin user with username "admin" and password "admin"
+        /// Creates a default admin user with username "admin" and password "admin" with initial balance 0
         /// </summary>
         public static void CreateDefaultAdmin()
         {
@@ -129,19 +124,27 @@ namespace JahresprojektNeu
             {
                 string username = "admin";
                 string password = "admin";
-                string Exists = $"SELECT Username FROM Users;";
-                string salt = BCrypt.GenerateSalt(12);
-                string hashedPass = BCrypt.HashPassword(password, salt);
 
-                cmd.CommandText = Exists;
+                string Exists = $"SELECT Username FROM Users WHERE Username = @Username;";
+                cmd = new SqlCommand(Exists, con);
+                cmd.Parameters.AddWithValue("@Username", username);
+
                 con.Open();
 
-                if (cmd.ExecuteScalar() == null)
+                var result = cmd.ExecuteScalar();
+                if (result == null)
                 {
-                    string addAdmin = $"INSERT INTO Users(Username, HashPass) VALUES('{username}', '{hashedPass}')";
-                    cmd.CommandText = addAdmin;
+                    string salt = GenerateSalt(12);
+                    string hashedPass = HashPassword(password, salt);
+
+                    string addAdmin = $"INSERT INTO Users(Username, HashPass, Balance) VALUES(@Username, @HashPass, @Balance)";
+                    cmd = new SqlCommand(addAdmin, con);
+                    cmd.Parameters.AddWithValue("@Username", username);
+                    cmd.Parameters.AddWithValue("@HashPass", hashedPass);
+                    cmd.Parameters.AddWithValue("@Balance", 0m);
+
                     cmd.ExecuteNonQuery();
-                    con.Close();
+
                     MessageBox.Show("Ihr Username: 'admin' \n" +
                                     "Ihr Passwort: 'admin' \n" +
                                     "Merken Sie sich diese Anmeldedaten!\n" +
@@ -154,7 +157,7 @@ namespace JahresprojektNeu
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
-                con.Close();
+                if (con.State == ConnectionState.Open) con.Close();
             }
         }
 
@@ -183,7 +186,7 @@ namespace JahresprojektNeu
                     string storedHash = SQLReader["HashPass"].ToString();
 
                     // Verify the password against the stored hash
-                    authenticated = BCrypt.CheckPassword(password, storedHash);
+                    authenticated = CheckPassword(password, storedHash);
                 }
 
                 SQLReader.Close();
@@ -228,17 +231,89 @@ namespace JahresprojektNeu
                 }
 
                 // Hash the password
-                string salt = BCrypt.GenerateSalt(12);
-                string hashedPass = BCrypt.HashPassword(password, salt);
+                string salt = GenerateSalt(12);
+                string hashedPass = HashPassword(password, salt);
 
-                // Insert new user
-                string insertQuery = $"INSERT INTO Users(Username, HashPass) VALUES(@Username, @HashPass)";
+                // Insert new user with Balance 0 as initial value
+                string insertQuery = $"INSERT INTO Users(Username, HashPass, Balance) VALUES(@Username, @HashPass, @Balance)";
                 cmd = new SqlCommand(insertQuery, con);
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.Parameters.AddWithValue("@HashPass", hashedPass);
+                cmd.Parameters.AddWithValue("@Balance", 0m);
 
                 int rowsAffected = cmd.ExecuteNonQuery();
-                success = (rowsAffected > 0);
+                success = rowsAffected > 0;
+
+                con.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                if (con.State == ConnectionState.Open)
+                {
+                    con.Close();
+                }
+            }
+
+            return success;
+        }
+
+        /// <summary>
+        /// Gets the balance of a user by username.
+        /// </summary>
+        /// <param name="username">Username of the user</param>
+        /// <returns>The balance of the user</returns>
+        public static decimal GetUserBalance(string username)
+        {
+            decimal balance = 0;
+
+            try
+            {
+                con.Open();
+                string query = $"SELECT Balance FROM Users WHERE Username = @Username";
+                cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@Username", username);
+
+                object result = cmd.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    balance = Convert.ToDecimal(result);
+                }
+
+                con.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                if (con.State == ConnectionState.Open)
+                {
+                    con.Close();
+                }
+            }
+
+            return balance;
+        }
+
+        /// <summary>
+        /// Updates the balance of a user by username.
+        /// </summary>
+        /// <param name="username">Username of the user</param>
+        /// <param name="newBalance">New balance to set</param>
+        /// <returns>True if the update is successful, false otherwise</returns>
+        public static bool UpdateUserBalance(string username, decimal newBalance)
+        {
+            bool success = false;
+
+            try
+            {
+                con.Open();
+                string query = $"UPDATE Users SET Balance = @Balance WHERE Username = @Username";
+                cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@Balance", newBalance);
+                cmd.Parameters.AddWithValue("@Username", username);
+
+                int rowsAffected = cmd.ExecuteNonQuery();
+                success = rowsAffected > 0;
 
                 con.Close();
             }
@@ -255,3 +330,4 @@ namespace JahresprojektNeu
         }
     }
 }
+

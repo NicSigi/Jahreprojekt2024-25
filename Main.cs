@@ -1,4 +1,5 @@
 ﻿using Jahresprojekt;
+using JahresprojektNeu.Classes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -43,8 +44,9 @@ namespace JahresprojektNeu
 
         private void btnShowAd_Click(object sender, EventArgs e)
         {
-            Ad adForm = new Ad();
-            adForm.ShowDialog();
+            var adForm = new Ad("aktuellerUsername");
+            adForm.Show();
+
         }
     }
 }

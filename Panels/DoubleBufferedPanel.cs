@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JahresprojektNeu
+namespace JahresprojektNeu.Panels
 {
     internal class DoubleBufferedPanel : Panel
     {
         public DoubleBufferedPanel()
         {
-            this.DoubleBuffered = true;
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint |
+            DoubleBuffered = true;
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
                           ControlStyles.UserPaint |
                           ControlStyles.OptimizedDoubleBuffer, true);
-            this.UpdateStyles();
+            UpdateStyles();
         }
     }
 }

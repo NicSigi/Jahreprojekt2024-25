@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JahresprojektNeu.Classes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,7 +17,7 @@ namespace JahresprojektNeu
         private Random rng = new Random();
 
         // Game state variables
-        private decimal balance = 1000.00m;     // Starting balance
+        private decimal balance => GameManager.Instance.Balance;     // Starting balance
         private decimal betAmount = 1.00m;      // Default bet
         private int targetNumber = 50;          // Target to roll over/under
         private bool isRollOver = true;         // True = Roll Over, False = Roll Under
@@ -124,13 +125,14 @@ namespace JahresprojektNeu
         private bool RollDice()
         {
             // Validate bet
-            if (betAmount <= 0 || betAmount > balance)
+            if (betAmount <= 0 || betAmount > GameManager.Instance.Balance)
             {
                 MessageBox.Show("Invalid bet amount!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
-            balance -= betAmount; // Deduct bet
+            // Deduct bet from GameManager balance
+            GameManager.Instance.UpdateBalance(-betAmount);
 
             int roll = rng.Next(1, 101); // Simulate dice roll (1-100)
 
@@ -142,7 +144,7 @@ namespace JahresprojektNeu
             if (isWin)
             {
                 winAmount = betAmount * multiplier;
-                balance += winAmount;
+                GameManager.Instance.UpdateBalance(winAmount); // Update GameManager balance
                 sessionProfit += winAmount - betAmount;
             }
             else
@@ -164,6 +166,7 @@ namespace JahresprojektNeu
             return isWin;
         }
 
+
         // Update UI after a roll
         private void UpdateGameResult(int roll, bool isWin, decimal winAmount)
         {
@@ -182,12 +185,13 @@ namespace JahresprojektNeu
 
             // Update balance and profit labels
             Label balanceLabel = (Label)Controls.Find("lblBalance", true)[0];
-            balanceLabel.Text = balance.ToString("C2");
+            balanceLabel.Text = GameManager.Instance.Balance.ToString("C2"); // Update balance from GameManager
 
             Label profitLabel = (Label)Controls.Find("lblProfit", true)[0];
             profitLabel.Text = sessionProfit.ToString("C2");
             profitLabel.ForeColor = sessionProfit >= 0 ? Color.LightGreen : Color.Tomato;
         }
+
 
         // Save a round result to history and refresh display
         private void AddToHistory(GameResult result)

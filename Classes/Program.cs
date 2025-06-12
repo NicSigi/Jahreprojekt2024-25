@@ -1,4 +1,4 @@
-namespace JahresprojektNeu
+namespace JahresprojektNeu.Classes
 {
     internal static class Program
     {
@@ -13,7 +13,5 @@ namespace JahresprojektNeu
             ApplicationConfiguration.Initialize();
             Application.Run(new Login());
         }
-
-
     }
 }
